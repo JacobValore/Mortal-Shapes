@@ -9,14 +9,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/JakeTheSpectre/MortalShapes.git"
+    "url": "git+https://github.com/JacobValore/Mortal-Shapes.git"
   },
   "author": "JacobValore",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/JakeTheSpectre/MortalShapes/issues"
+    "url": "https://github.com/JacobValore/Mortal-Shapes/issues"
   },
-  "homepage": "https://github.com/JakeTheSpectre/MortalShapes#readme",
+  "homepage": "https://github.com/JacobValore/Mortal-Shapes#readme",
   "dependencies": {
     "express": "^4.17.1",
     "socket.io": "^2.3.0"
