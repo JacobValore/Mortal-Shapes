@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>Mortal Shapes</title>
+	<link rel="stylesheet" href="./game.css">
+	<meta name="description" content="There are shapes. They are mortal.">
+	<meta name="author" content="JakeTheSpectre">
+	<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+	<script src="/socket.io/socket.io.js"></script>
+</head>
+
+<body>
+	<div class="attack-arrows hidden">
+		<svg x="0px" y="0px" viewBox="0 0 350 100">
+			<g id="0to1" class="arrow hidden">
+				<path class="st0" d="M82.73,87.68c38.44-38.09,67.38-30.91,69.9,0"/>
+				<line class="st0" x1="145.73" y1="82.56" x2="152.63" y2="87.68"/>
+				<line class="st0" x1="156.97" y1="79.24" x2="152.63" y2="87.68"/>
+			</g>
+			<g id="1to0" class="arrow hidden">
+				<path class="st0" d="M178.43,87.02C140.4,28.09,70.76,45.94,69.71,87.11"/>
+				<line class="st0" x1="79.53" y1="79.81" x2="69.71" y2="87.11"/>
+				<line class="st0" x1="63.58" y1="78.23" x2="69.71" y2="87.11"/>
+			</g>
+			<g id="2to0" class="arrow hidden">
+				<path class="st0" d="M310.73,87.46C253.54-4.69,68.01,12.62,44.15,87.68"/>
+				<line class="st0" x1="58.53" y1="80.69" x2="44.15" y2="87.68"/>
+				<line class="st0" x1="37.48" y1="74.71" x2="44.15" y2="87.68"/>
+			</g>
+			<g id="0to2" class="arrow hidden">
+				<path class="st0" d="M12.55,87.42C81.27-23.3,304.18-2.5,332.85,87.68"/>
+				<line class="st0" x1="315.57" y1="79.28" x2="332.85" y2="87.68"/>
+				<line class="st0" x1="340.86" y1="72.1" x2="332.85" y2="87.68"/>
+			</g>
+			<g id="1to2" class="arrow hidden">
+				<path class="st0" d="M178.78,87.14c38.04-58.92,107.67-41.08,108.72,0.09"/>
+				<line class="st0" x1="277.68" y1="79.94" x2="287.5" y2="87.23"/>
+				<line class="st0" x1="293.63" y1="78.35" x2="287.5" y2="87.23"/>
+			</g>
+			<g id="2to1" class="arrow hidden">
+				<path class="st0" d="M273.44,88.2c-38.44-38.09-67.38-30.91-69.9,0"/>
+				<line class="st0" x1="210.45" y1="83.08" x2="203.55" y2="88.2"/>
+				<line class="st0" x1="199.21" y1="79.77" x2="203.55" y2="88.2"/>
+			</g>
+		</svg>
+	</div>
+	<div class="content">
+		<div class="main-page">
+			<div class="timer">
+				Time: 300
+			</div>
+			<div class="table">
+				<div class="player-anchor">
+					<!-- <div class="player back">
+						<div class="card">
+							<div class="attributes"></div>
+							<div class="title"></div>
+						</div>
+						<div class="username">Jake</div>
+					</div>
+					<div class="player pyramid locked">
+						<div class="card">
+							<div class="attributes"></div>
+							<div class="title">Pyramid</div>
+						</div>
+						<div class="username">Kyle</div>
+					</div>
+					<div class="player cube target locked">
+						<div class="card">
+							<div class="attributes"></div>
+							<div class="title">Cube</div>
+						</div>
+						<div class="username">Maggie</div>
+					</div> -->
+				</div>
+			</div>
+			<div class="kill-buttons">
+				<div class="lock-button" onclick="lockTarget()">
+					Lock in Target
+				</div>
+				<div class="no-kill-button" onclick="noKill()">
+					No Kill
+				</div>
+			</div>
+			<div class="host-buttons hidden">
+				<div class="start-game-button" onclick="startGame()">
+					Start Game
+				</div>
+			</div>
+		</div>
+		<div class="right-sidebar">
+			<div class="sb-tab-right" onclick="toggleTab('right')"></div>
+			<div class="rs-chat">
+				<div class="chat-entries">
+					<!-- <div class="chat-entry">
+						<p class="chat-name">[Kyle]</p>
+						<p class="chat-message">You are a Cube. What am I?</p>
+					</div> -->
+				</div>
+				<div class="chat-input">
+					<input class="chat-input-box" type="text">
+					<input class="chat-input-button" type="submit" value="Send" onclick="sendMessage()">
+				</div>
+			</div>
+			<div class="rs-rules">
+				<div class="r-title">I N S T R U C T I O N S:</div>
+				<div class="r-1">There are two sides, the Pyramids and the Cubes. If a fellow shape is murdered then all shapes of that type will be hung. If no shape is destroyed then the shape with the fewest of it's kind is declared king.</div>
+				<div class="r-2">There is another, the Torus! The Torus must remain neutral or they will lose. However the other two S H A P E S must convince the Torus to vote with them, against The Other.</div>
+				<div class="r-3">A member from the Pyramid and Cube clan might contain mystical powers. If one of them e x i s t s then the shown allegience of the other two shapes will be reversed! If two Mystical Shapes exist, the third is unchanged.</div>
+			</div>
+		</div>
+	</div>
+</body>
+<script>
+	var socket = io.connect();
+
+	placeArrowDiv();
+	$(window).resize(function(){
+		placeArrowDiv();
+	});
+	function placeArrowDiv(){
+		var arrowLeft = ($(".player-anchor").width()-$(".attack-arrows").width())/2 + $(".player-anchor").offset().left;
+		var arrowTop = $(".player-anchor").offset().top - $(".attack-arrows").height();
+		$(".attack-arrows").css({"top":arrowTop,"left":arrowLeft});
+	}
+
+	// RECIEVING
+	socket.on('connect', function(){
+		console.log("receiving connect");
+		socket.emit('room_connection', {"room_id":window.location.pathname.substr(1), "username":getCookie('username')});
+	});
+	socket.on('show-host-start', function(){
+		$(".host-buttons").removeClass("hidden");
+	});
+	socket.on('reset-game', function(){
+		console.log('reset game received');
+		$(".attack-arrows").addClass("hidden");
+		$(".arrow").addClass("hidden");
+		$(".host-buttons").addClass("hidden");
+		// $(".title").empty();
+		// $(".cube").removeClass("cube");
+		// $(".pyramid").removeClass("pyramid");
+		// $(".mystic-cube").removeClass("mystic-cube");
+		// $(".mystic-pyramid").removeClass("mystic-pyramid");
+		// $(".torus").removeClass("torus");
+		// $(".locked").removeClass("locked");
+		// $(".target").removeClass("target");
+	});
+	socket.on('playerlist', function(data){
+		console.log("playerlist");
+		console.log(data);
+		$(".player-anchor").empty();
+		var playerToIndex = {}
+		for(var i = 0; i < data.playerlist.length; i++){
+			p = data.playerlist[i];
+			var attributeClasses =  ((data.trigger=="Win"&&p.winner)?' winner':'')+
+									((data.trigger=="Win"&&!p.winner)?' loser':'')+
+									((data.trigger!="Win"&&p.id==data.target)?' target':'')+
+									((data.trigger!="Win"&&p.locked)?' locked':'');
+			var player = '<div class="player p'+p.id+(p.role==undefined?' back':' '+p.role)+attributeClasses+'">'+
+							'<div class="card" onclick="playerClicked('+p.id+')">'+
+								'<div class="attributes"></div>'+
+								'<div class="title">'+(p.role==undefined?'':p.role)+'</div>'+
+							'</div>'+
+							'<div class="username">'+p.username+'</div>'+
+						  '</div>';
+			$(".player-anchor").append(player);
+			playerToIndex[p.id] = i
+		}
+		if(data.trigger=="Win"){ // Show attack arrows
+			$(".attack-arrows").removeClass("hidden");
+			for(var p of data.playerlist){
+				if(p.target!=undefined){
+					var arrowID = playerToIndex[p.id]+"to"+playerToIndex[p.target];
+					console.log("arrowID:"+arrowID);
+					$("#"+arrowID).removeClass("hidden");
+				}
+			}
+			placeArrowDiv();
+		}
+
+	});
+	socket.on('chat-message', function(data){
+		console.log('receiving chat-message');
+		var isAtBottom = ($(".chat-entries").scrollTop()+$(".chat-entries").height()+15)>=$(".chat-entries").prop("scrollHeight");
+		var message = '<div class="chat-entry">'+
+						'<p class="chat-name">['+data.username+']</p>'+
+						'<p class="chat-message">'+data.message+'</p>'+
+					  '</div>';
+		$(".chat-entries").append(message);
+		if(isAtBottom)
+			$(".chat-entries").scrollTop($(".chat-entries").prop("scrollHeight"));
+	});
+
+	// SENDING
+	function startGame(){
+		socket.emit('start-game');
+		$(".host-buttons").addClass("hidden");
+	}
+	function sendMessage(){
+		socket.emit('chat-message', {"message":$(".chat-input-box").val()});
+		$(".chat-input-box").val("");
+	}
+	function lockTarget(){
+		socket.emit('locked', {"locked":false});
+	}
+	function noKill(){
+		socket.emit('target', {"noTarget":true});
+	}
+	function playerClicked(id){
+		socket.emit('target', {"noTarget":false, "target":id})
+	}
+
+	// EXTRAS
+	function setCookie(cname, cvalue) {
+		document.cookie = cname + "=" + cvalue + ";";
+	}
+	function getCookie(cname) {
+		var name = cname + "=";
+		var ca = document.cookie.split(';');
+		for(var i = 0; i < ca.length; i++) {
+			var c = ca[i];
+			while (c.charAt(0) == ' ') {
+				c = c.substring(1);
+			}
+			if (c.indexOf(name) == 0) {
+				return c.substring(name.length, c.length);
+			}
+		}
+		return "";
+	}
+</script>
+</html>

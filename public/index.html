@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>Mortal Shapes</title>
+	<link rel="stylesheet" href="./style.css">
+	<meta name="description" content="There are shapes. They are mortal.">
+	<meta name="author" content="JakeTheSpectre">
+	<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+	<script src="/socket.io/socket.io.js"></script>
+</head>
+
+<body>
+	<input class="username-input" type="text" placeholder="Username">
+	<input class="su-button" type="submit" value="Join A Game" onclick="joinGame()">
+</body>
+<script>
+	var socket = io.connect();
+
+	socket.on('connect', function(){
+		$(".username-input").val(getCookie('username'));
+	});
+	socket.on('redirect', function(destination) {
+    	window.location.href = destination.url;
+	});
+
+	function joinGame(){
+		this.setCookie('username', $(".username-input").val());
+		socket.emit('public_game');
+	}
+	function setCookie(cname, cvalue) {
+		document.cookie = cname + "=" + cvalue + ";";
+	}
+	function getCookie(cname) {
+		var name = cname + "=";
+		var ca = document.cookie.split(';');
+		for(var i = 0; i < ca.length; i++) {
+			var c = ca[i];
+			while (c.charAt(0) == ' ') {
+				c = c.substring(1);
+			}
+			if (c.indexOf(name) == 0) {
+				return c.substring(name.length, c.length);
+			}
+		}
+		return "";
+	}
+</script>
+</html>
